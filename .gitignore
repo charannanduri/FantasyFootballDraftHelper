@@ -14,6 +14,7 @@ venv/
 
 # Data files (do not commit draft CSVs)
 *.csv
+!examples/*.csv
 
 # Editors
 .vscode/

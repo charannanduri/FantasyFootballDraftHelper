@@ -16,8 +16,8 @@ A simple CLI tool to track available players during your fantasy draft while you
 
 1) Clone the repo
 ```bash
-git clone https://github.com/<your-username>/FantasyFootballDraft.git
-cd FantasyFootballDraft
+git clone https://github.com/charannanduri/FantasyFootballDraftHelper.git
+cd FantasyFootballDraftHelper
 ```
 
 2) (Recommended) Create and activate a virtual environment
@@ -64,3 +64,45 @@ If `Rank` is present, the overall top 3 uses it; otherwise, it falls back to poi
 ## Notes
 - CSV files are ignored by `.gitignore` and won’t be committed by default.
 - This tool doesn’t draft for you; it only tracks availability while you draft elsewhere. 
+
+## Customization: columns and sorting
+If your CSV has different headers or you want to change how players are ranked, you can edit `draft_helper.py`:
+
+- Change CSV column mappings (inside `load_df`):
+  - Update `rename_map` so the left side matches your CSV headers and the right side maps to the tool’s internal names:
+    - `Full Name`, `Position`, `Team`, `AdjPts`, `ProjPts`, `ADP`, `PosRank`, `Auc$`, `Rank`
+  - Example: if your CSV uses `Team Abbrev`, it’s already mapped to `Team`. Replace or add keys as needed.
+
+- Change which metric powers sorting by points (position lists and overall fallback):
+  - In `load_df`, find the section labeled “Sorting key (highest first)” and edit:
+    ```python
+    sort_key = 'AdjPts' if 'AdjPts' in df.columns else ('ProjPts' if 'ProjPts' in df.columns else None)
+    ```
+  - To force use of projected points:
+    ```python
+    sort_key = 'ProjPts'
+    ```
+
+- Change how the overall “top 3” is selected:
+  - In `show_top`, overall uses `Rank` if available, otherwise `sort_key`:
+    ```python
+    if pos:
+        top = avail.nlargest(n, sort_key)
+    else:
+        if 'Rank' in avail.columns:
+            top = avail.nsmallest(n, 'Rank')
+        else:
+            top = avail.nlargest(n, sort_key)
+    ```
+  - To ignore overall `Rank` and always use the points metric, remove the `Rank` branch and keep `nlargest(n, sort_key)`.
+
+- Tip: Higher-is-better metrics should use `nlargest(...)`; lower-is-better metrics should use `nsmallest(...)`. 
+
+## Try it with the included sample CSV
+This repo includes a synthetic example file at `examples/sample_ranked_draftboard.csv` so you can run the tool immediately:
+
+```bash
+python draft_helper.py examples/sample_ranked_draftboard.csv
+```
+
+Follow the on-screen commands (e.g., `top`, `QB`, `remove <name>`, `undo`). 
