@@ -106,3 +106,5 @@ python draft_helper.py examples/sample_ranked_draftboard.csv
 ```
 
 Follow the on-screen commands (e.g., `top`, `QB`, `remove <name>`, `undo`). 
+
+Built with GPT-5.
